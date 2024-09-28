@@ -3,9 +3,11 @@ package coursework.model;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.io.Serializable;
+
 @Getter
 @Setter
-public class Publication {
+public class Publication implements Serializable {
     protected int id;
     protected String title;
     protected String author;

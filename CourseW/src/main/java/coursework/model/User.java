@@ -3,9 +3,11 @@ package coursework.model;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.io.Serializable;
+
 @Getter
 @Setter
-public abstract class User {
+public abstract class User implements Serializable {
     protected int id;
     protected String login;
     protected String password;
