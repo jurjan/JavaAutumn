@@ -1,23 +1,26 @@
 package coursework.model;
 
+import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.util.List;
 
 @Getter
 @Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@Entity
 public class Chat {
-
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
     private Book book;
+    @OneToMany(mappedBy = "chat", cascade = CascadeType.ALL)
     private List<Comment> messages;
 
-    public Chat(int id, Book book, List<Comment> messages) {
-        this.id = id;
-        this.book = book;
-        this.messages = messages;
-    }
 
     public Chat(Book book, List<Comment> messages) {
         this.book = book;

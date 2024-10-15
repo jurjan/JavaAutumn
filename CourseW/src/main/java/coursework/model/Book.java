@@ -1,5 +1,6 @@
 package coursework.model;
 
+import coursework.model.enums.Format;
 import coursework.model.enums.Genre;
 import coursework.model.enums.Language;
 import lombok.Getter;

@@ -1,6 +1,12 @@
 package coursework.model;
 
+import jakarta.persistence.CascadeType;
+import jakarta.persistence.Entity;
+import jakarta.persistence.OneToMany;
+import jakarta.persistence.Transient;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.time.LocalDate;
@@ -8,13 +14,19 @@ import java.util.List;
 
 @Getter
 @Setter
-public class Client extends User implements Comparable<Client>{
+@NoArgsConstructor
+@AllArgsConstructor
+@Entity
+public class Client extends User implements Comparable<Client> {
 
     private String address;
     //birthDate prideta demonstracijai kaip dirbt su LocalDate
     private LocalDate birthDate;
+    @OneToMany(mappedBy = "client", cascade = CascadeType.ALL)
     private List<Comment> commentList;
+    @Transient
     private List<Publication> ownedPublications;
+    @Transient
     private List<Publication> borrowedPublications;
 
     public Client(String login, String password, String name, String surname, String address) {
