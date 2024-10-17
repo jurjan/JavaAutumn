@@ -1,5 +1,6 @@
 package coursework.fxControllers;
 
+import coursework.StartGUI;
 import coursework.hibenateControllers.GenericHibernate;
 import coursework.model.Admin;
 import coursework.model.Client;
@@ -8,16 +9,25 @@ import jakarta.persistence.EntityManagerFactory;
 import jakarta.persistence.Persistence;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
+import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
+import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.input.MouseEvent;
+import javafx.stage.Modality;
+import javafx.stage.Stage;
 
+import java.io.IOException;
 import java.net.URL;
 import java.util.List;
 import java.util.ResourceBundle;
 
+//Norėdama pasiekti formos elementus iki forma yra sugeneruojama, turiu implementuoti Initializable interfeisą.
+//Jums automatiškai siūlys initialize metodą įgyvendint, ten dedat kodą, kuris turi būt vykdomas pirmiausia
+//Mūsų atveju gavosi, kad reikia ištraukt userius iš DB
 public class Main implements Initializable {
     @FXML
+    //Stenkitės nurodyti tikslius duomenų tipus, kurie bus saugomi ListView
     public ListView<User> userListField;
     @FXML
     public TextField loginField;
@@ -109,5 +119,16 @@ public class Main implements Initializable {
         User selectedUser = userListField.getSelectionModel().getSelectedItem();
         hibernate.delete(User.class, selectedUser.getId());
         fillUserList();
+    }
+
+    public void loadProductForm() throws IOException {
+        Stage stage = new Stage();
+        FXMLLoader fxmlLoader = new FXMLLoader(StartGUI.class.getResource("productWindow.fxml"));
+        Scene scene = new Scene(fxmlLoader.load());
+        stage.setTitle("Book Exchange Test");
+        stage.initModality(Modality.APPLICATION_MODAL);
+        stage.setScene(scene);
+        stage.showAndWait();
+
     }
 }

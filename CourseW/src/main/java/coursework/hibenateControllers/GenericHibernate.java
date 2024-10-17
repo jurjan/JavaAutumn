@@ -4,10 +4,12 @@ import coursework.model.Admin;
 import coursework.model.Book;
 import coursework.model.Client;
 import coursework.model.User;
+import coursework.utils.FxUtils;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityManagerFactory;
 import jakarta.persistence.Query;
 import jakarta.persistence.criteria.CriteriaQuery;
+import javafx.scene.control.Alert;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -29,7 +31,7 @@ public class GenericHibernate {
             entityManager.getTransaction().commit();
 
         } catch (Exception e) {
-            e.printStackTrace();
+            FxUtils.generateAlert(Alert.AlertType.ERROR, "Hibernate Error", "Error during INSERT operation");
         } finally {
             if (entityManager != null) entityManager.close();
         }

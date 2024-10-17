@@ -36,6 +36,7 @@
                         <RadioButton fx:id="clientChk" layoutX="525.0" layoutY="65.0" mnemonicParsing="false" onAction="#disableFields" selected="true" text="Client" toggleGroup="$userType" />
                         <Button layoutX="379.0" layoutY="318.0" mnemonicParsing="false" onAction="#updateUser" text="Update" />
                         <Button layoutX="501.0" layoutY="318.0" mnemonicParsing="false" onAction="#deleteUser" text="Delete" />
+                        <Button layoutX="472.0" layoutY="267.0" mnemonicParsing="false" onAction="#loadProductForm" text="Products Window" />
                      </children>
                   </AnchorPane>
             </content>
