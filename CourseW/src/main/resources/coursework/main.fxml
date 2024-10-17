@@ -1,24 +1,41 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import javafx.scene.control.*?>
-<?import javafx.scene.layout.*?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.DatePicker?>
+<?import javafx.scene.control.ListView?>
+<?import javafx.scene.control.PasswordField?>
+<?import javafx.scene.control.RadioButton?>
+<?import javafx.scene.control.Tab?>
+<?import javafx.scene.control.TabPane?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.control.ToggleGroup?>
+<?import javafx.scene.layout.AnchorPane?>
 
-<AnchorPane prefHeight="400.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/17.0.2-ea" xmlns:fx="http://javafx.com/fxml/1" fx:controller="coursework.fxControllers.Main">
+<AnchorPane prefHeight="400.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/16" xmlns:fx="http://javafx.com/fxml/1" fx:controller="coursework.fxControllers.Main">
    <children>
       <TabPane prefHeight="400.0" prefWidth="600.0" tabClosingPolicy="UNAVAILABLE">
         <tabs>
-          <Tab text="Untitled Tab 1">
+          <Tab text="User">
             <content>
               <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="180.0" prefWidth="200.0">
                      <children>
-                        <ListView fx:id="userListField" layoutX="14.0" layoutY="14.0" prefHeight="339.0" prefWidth="205.0" />
+                        <ListView fx:id="userListField" layoutX="14.0" layoutY="14.0" onMouseClicked="#loadUserData" prefHeight="339.0" prefWidth="205.0" />
                         <TextField fx:id="loginField" layoutX="239.0" layoutY="23.0" />
                         <TextField fx:id="nameField" layoutX="240.0" layoutY="61.0" />
                         <PasswordField fx:id="pswField" layoutX="240.0" layoutY="106.0" />
                         <TextField fx:id="surnameField" layoutX="241.0" layoutY="151.0" />
-                        <TextField fx:id="addressField" layoutX="242.0" layoutY="195.0" />
+                        <TextField fx:id="addressField" layoutX="234.0" layoutY="195.0" prefHeight="26.0" prefWidth="174.0" />
                         <DatePicker fx:id="bDate" layoutX="230.0" layoutY="242.0" />
                         <Button layoutX="274.0" layoutY="318.0" mnemonicParsing="false" onAction="#createNewUser" text="Add" />
+                        <TextField fx:id="phoneNumField" layoutX="426.0" layoutY="23.0" />
+                        <RadioButton fx:id="adminChk" layoutX="426.0" layoutY="65.0" mnemonicParsing="false" onAction="#disableFields" text="Admin">
+                           <toggleGroup>
+                              <ToggleGroup fx:id="userType" />
+                           </toggleGroup>
+                        </RadioButton>
+                        <RadioButton fx:id="clientChk" layoutX="525.0" layoutY="65.0" mnemonicParsing="false" onAction="#disableFields" selected="true" text="Client" toggleGroup="$userType" />
+                        <Button layoutX="379.0" layoutY="318.0" mnemonicParsing="false" onAction="#updateUser" text="Update" />
+                        <Button layoutX="501.0" layoutY="318.0" mnemonicParsing="false" onAction="#deleteUser" text="Delete" />
                      </children>
                   </AnchorPane>
             </content>
