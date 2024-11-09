@@ -7,6 +7,8 @@
 <?import javafx.scene.control.RadioButton?>
 <?import javafx.scene.control.Tab?>
 <?import javafx.scene.control.TabPane?>
+<?import javafx.scene.control.TableColumn?>
+<?import javafx.scene.control.TableView?>
 <?import javafx.scene.control.TextField?>
 <?import javafx.scene.control.ToggleGroup?>
 <?import javafx.scene.layout.AnchorPane?>
@@ -46,6 +48,26 @@
               <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="180.0" prefWidth="200.0" />
             </content>
           </Tab>
+            <Tab text="Alternative User Management">
+              <content>
+                <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="180.0" prefWidth="200.0">
+                     <children>
+                        <TableView fx:id="userTable" prefHeight="372.0" prefWidth="600.0">
+                          <columns>
+                            <TableColumn fx:id="colId" prefWidth="75.0" text="Id" />
+                            <TableColumn fx:id="colLogin" prefWidth="75.0" text="Username" />
+                              <TableColumn fx:id="colPsw" prefWidth="75.0" text="Password" />
+                              <TableColumn fx:id="colName" prefWidth="75.0" text="Name" />
+                              <TableColumn fx:id="colSurname" prefWidth="75.0" text="Surname" />
+                              <TableColumn fx:id="colAddress" prefWidth="75.0" text="Address" />
+                              <TableColumn fx:id="colPhone" prefWidth="75.0" text="Phone" />
+                              <TableColumn fx:id="dummyCol" prefWidth="75.0" text="Action" />
+                          </columns>
+                        </TableView>
+                     </children>
+                  </AnchorPane>
+              </content>
+            </Tab>
         </tabs>
       </TabPane>
    </children>

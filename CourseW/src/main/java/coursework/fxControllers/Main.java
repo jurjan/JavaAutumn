@@ -1,6 +1,7 @@
 package coursework.fxControllers;
 
 import coursework.StartGUI;
+import coursework.hibenateControllers.CustomHibernate;
 import coursework.hibenateControllers.GenericHibernate;
 import coursework.model.Admin;
 import coursework.model.Client;
@@ -13,9 +14,11 @@ import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
-import javafx.scene.input.MouseEvent;
+import javafx.scene.control.cell.PropertyValueFactory;
+import javafx.scene.control.cell.TextFieldTableCell;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
+import javafx.util.Callback;
 
 import java.io.IOException;
 import java.net.URL;
@@ -47,9 +50,40 @@ public class Main implements Initializable {
     public RadioButton adminChk;
     @FXML
     public RadioButton clientChk;
+    //<editor-fold desc="Tableview attributes">
+    @FXML
+    public TableView<UserTableParameters> userTable;
+    @FXML
+    public TableColumn<UserTableParameters, Integer> colId;
+    @FXML
+    public TableColumn<UserTableParameters, String> colLogin;
+    @FXML
+    public TableColumn<UserTableParameters, String> colPsw;
+    @FXML
+    public TableColumn<UserTableParameters, String> colName;
+    @FXML
+    public TableColumn<UserTableParameters, String> colSurname;
+    @FXML
+    public TableColumn<UserTableParameters, String> colAddress;
+    @FXML
+    public TableColumn<UserTableParameters, String> colPhone;
+    public TableColumn dummyCol;
 
-    EntityManagerFactory entityManagerFactory = Persistence.createEntityManagerFactory("coursework");
-    GenericHibernate hibernate = new GenericHibernate(entityManagerFactory);
+    //</editor-fold>
+
+    EntityManagerFactory entityManagerFactory; // = Persistence.createEntityManagerFactory("coursework");
+    CustomHibernate hibernate; // = new GenericHibernate(entityManagerFactory);
+
+    User currentUser;
+
+    public void setData(EntityManagerFactory entityManagerFactory, User user) {
+        this.entityManagerFactory = entityManagerFactory;
+        this.hibernate = new CustomHibernate(entityManagerFactory);
+        this.currentUser = user;
+        fillUserList();
+        fillUserTable();
+    }
+
 
     public void createNewUser() {
         if (clientChk.isSelected()) {
@@ -80,9 +114,74 @@ public class Main implements Initializable {
         userListField.getItems().addAll(userList);
     }
 
+    //Sioje vietoje initialize mums reikia, kad nustatytume tam tikras reiksmes, kai dar nereikia duomenu bazes
     @Override
     public void initialize(URL location, ResourceBundle resources) {
-        fillUserList();
+        userTable.setEditable(true);
+
+        //Atvaizdavimui
+        colId.setCellValueFactory(new PropertyValueFactory<>("id"));
+        colLogin.setCellValueFactory(new PropertyValueFactory<>("login"));
+        colPsw.setCellValueFactory(new PropertyValueFactory<>("password"));
+        //likusius baigt
+
+        //Jei noriu padaryt redaguojamas celes
+        colLogin.setCellFactory(TextFieldTableCell.forTableColumn());
+        colLogin.setOnEditCommit(event -> {
+            event.getTableView().getItems().get(event.getTablePosition().getRow()).setLogin(event.getNewValue());
+            User user = hibernate.getEntityById(User.class, event.getTableView().getItems().get(event.getTablePosition().getRow()).getId());
+            user.setLogin(event.getNewValue());
+            hibernate.update(user);
+        });
+
+        //Jei turesite lentele, kurioje saugosime ir Admin ir Customer, tiems stulpeliams, kur yra specifiniai pagal klases
+        //Reikia pasitikrinti koks ten tas User
+        colAddress.setOnEditCommit(event -> {
+            event.getTableView().getItems().get(event.getTablePosition().getRow()).setAddress(event.getNewValue());
+            User user = hibernate.getEntityById(User.class, event.getTableView().getItems().get(event.getTablePosition().getRow()).getId());
+            if (user instanceof Client client) {
+                client.setAddress(event.getNewValue());
+                hibernate.update(user);
+            }
+        });
+
+        colPhone.setOnEditCommit(event -> {
+            event.getTableView().getItems().get(event.getTablePosition().getRow()).setPhoneNum(event.getNewValue());
+            User user = hibernate.getEntityById(User.class, event.getTableView().getItems().get(event.getTablePosition().getRow()).getId());
+            if (user instanceof Admin admin) {
+                admin.setPhoneNum(event.getNewValue());
+                hibernate.update(admin);
+            }
+        });
+
+        //Cia dabar bus knopke
+        Callback<TableColumn<UserTableParameters, Void>, TableCell<UserTableParameters, Void>> callback = param -> {
+            final TableCell<UserTableParameters, Void> cell = new TableCell<>() {
+                private final Button deleteButton = new Button("Delete");
+
+                {
+                    deleteButton.setOnAction(event -> {
+                        UserTableParameters row = getTableView().getItems().get(getIndex());
+                        hibernate.delete(User.class, row.getId());
+                        fillUserTable();
+                    });
+                }
+
+                @Override
+                protected void updateItem(Void item, boolean empty) {
+                    super.updateItem(item, empty);
+                    if (empty) {
+                        setGraphic(null);
+                    } else {
+                        setGraphic(deleteButton);
+                    }
+                }
+            };
+            return cell;
+        };
+
+        dummyCol.setCellFactory(callback);
+
     }
 
     public void loadUserData() {
@@ -130,5 +229,18 @@ public class Main implements Initializable {
         stage.setScene(scene);
         stage.showAndWait();
 
+    }
+
+    private void fillUserTable() {
+        userTable.getItems().clear();
+        List<User> users = hibernate.getAllRecords(User.class);
+        for (User u : users) {
+            UserTableParameters userTableParameters = new UserTableParameters();
+            userTableParameters.setId(u.getId());
+            userTableParameters.setLogin(u.getLogin());
+            userTableParameters.setPassword(u.getPassword());
+            //likusius pabaigt
+            userTable.getItems().add(userTableParameters);
+        }
     }
 }
