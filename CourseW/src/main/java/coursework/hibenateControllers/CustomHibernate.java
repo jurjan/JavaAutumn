@@ -1,5 +1,7 @@
 package coursework.hibenateControllers;
 
+import coursework.model.Client;
+import coursework.model.Comment;
 import coursework.model.Publication;
 import coursework.model.User;
 import coursework.model.enums.PublicationStatus;
@@ -56,5 +58,26 @@ public class CustomHibernate extends GenericHibernate {
             e.printStackTrace();
         }
         return publications;
+    }
+
+    public void deleteComment(int id) {
+        try {
+            entityManager = entityManagerFactory.createEntityManager();
+            entityManager.getTransaction().begin();
+            var comment = entityManager.find(Comment.class, id);
+
+            if (comment.getParentComment() != null) {
+                Comment parentComment = entityManager.find(Comment.class, comment.getParentComment().getId());
+                parentComment.getReplies().remove(comment);
+                entityManager.merge(parentComment);
+            }
+
+            comment.getReplies().clear();
+            entityManager.getTransaction().commit();
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            if (entityManager != null) entityManager.close();
+        }
     }
 }

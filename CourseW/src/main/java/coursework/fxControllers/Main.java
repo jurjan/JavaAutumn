@@ -9,10 +9,12 @@ import javafx.event.Event;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
+import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.control.cell.TextFieldTableCell;
+import javafx.scene.input.MouseEvent;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 import javafx.util.Callback;
@@ -94,10 +96,12 @@ public class Main implements Initializable {
     @FXML
     public Tab bookExchangeTab;
     //</editor-fold>
+    EntityManagerFactory entityManagerFactory;
     private CustomHibernate hibernate;
     private User currentUser;
 
     public void setData(EntityManagerFactory entityManagerFactory, User user) {
+        this.entityManagerFactory = entityManagerFactory;
         this.hibernate = new CustomHibernate(entityManagerFactory);
         this.currentUser = user;
         fillUserList();
@@ -292,5 +296,31 @@ public class Main implements Initializable {
             availableBookList.getItems().clear();
             availableBookList.getItems().addAll(hibernate.getAvailablePublications(currentUser));
         }
+    }
+
+    public void loadPublicationInfo() {
+        Publication publication = availableBookList.getSelectionModel().getSelectedItem();
+        Publication publicationFromDb = hibernate.getEntityById(Publication.class, publication.getId());
+
+        if (publicationFromDb instanceof Book book)
+            aboutBook.setText(
+                    "Title :" + book.getTitle() + "\n" +
+                            "Year:" + book.getPublicationYear());
+
+        ownerInfo.setText(publicationFromDb.getOwner().getName());
+        ownerBio.setText(publicationFromDb.getOwner().getClientBio());
+    }
+
+    public void loadReviewWindow() throws IOException {
+        FXMLLoader fxmlLoader = new FXMLLoader(StartGUI.class.getResource("userReview.fxml"));
+        Parent parent = fxmlLoader.load();
+        UserReview userReview = fxmlLoader.getController();
+        userReview.setData(entityManagerFactory, currentUser, availableBookList.getSelectionModel().getSelectedItem().getOwner());
+        Stage stage = new Stage();
+        Scene scene = new Scene(parent);
+        stage.setTitle("Book Exchange Test");
+        stage.setScene(scene);
+        stage.initModality(Modality.APPLICATION_MODAL);
+        stage.showAndWait();
     }
 }
