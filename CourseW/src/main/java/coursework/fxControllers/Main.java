@@ -2,13 +2,10 @@ package coursework.fxControllers;
 
 import coursework.StartGUI;
 import coursework.hibenateControllers.CustomHibernate;
-import coursework.hibenateControllers.GenericHibernate;
-import coursework.model.Admin;
-import coursework.model.Client;
-import coursework.model.User;
+import coursework.model.*;
 import jakarta.persistence.EntityManagerFactory;
-import jakarta.persistence.Persistence;
 import javafx.event.ActionEvent;
+import javafx.event.Event;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
@@ -67,21 +64,63 @@ public class Main implements Initializable {
     public TableColumn<UserTableParameters, String> colAddress;
     @FXML
     public TableColumn<UserTableParameters, String> colPhone;
+    @FXML
     public TableColumn dummyCol;
-
     //</editor-fold>
 
-    EntityManagerFactory entityManagerFactory; // = Persistence.createEntityManagerFactory("coursework");
-    CustomHibernate hibernate; // = new GenericHibernate(entityManagerFactory);
-
-    User currentUser;
+    //<editor-fold desc="Main exchange tab fields">
+    @FXML
+    public ListView<Publication> availableBookList;
+    @FXML
+    public TextArea aboutBook;
+    @FXML
+    public TextArea ownerBio;
+    @FXML
+    public Label ownerInfo;
+    @FXML
+    public ListView<Comment> chatList;
+    @FXML
+    public TextArea messageArea;
+    @FXML
+    public Tab publicationManagementTab;
+    @FXML
+    public Tab userManagementTab;
+    @FXML
+    public Tab clientBookManagementTab;
+    @FXML
+    public TabPane allTabs;
+    @FXML
+    public Button leaveReviewButton;
+    @FXML
+    public Tab bookExchangeTab;
+    //</editor-fold>
+    private CustomHibernate hibernate;
+    private User currentUser;
 
     public void setData(EntityManagerFactory entityManagerFactory, User user) {
-        this.entityManagerFactory = entityManagerFactory;
         this.hibernate = new CustomHibernate(entityManagerFactory);
         this.currentUser = user;
         fillUserList();
-        fillUserTable();
+
+
+        //Priklausomai nuo prisijungusio, apribojam matomuma
+        enableVisibility();
+    }
+
+    public void fillUserList() {
+        userListField.getItems().clear();
+        List<User> userList = hibernate.getAllRecords(User.class);
+        userListField.getItems().addAll(userList);
+    }
+
+    private void enableVisibility() {
+        if (currentUser instanceof Client) {
+            allTabs.getTabs().remove(publicationManagementTab);
+            allTabs.getTabs().remove(userManagementTab);
+        } else {
+            allTabs.getTabs().remove(clientBookManagementTab);
+            leaveReviewButton.setDisable(false);
+        }
     }
 
 
@@ -108,11 +147,6 @@ public class Main implements Initializable {
         }
     }
 
-    public void fillUserList() {
-        userListField.getItems().clear();
-        List<User> userList = hibernate.getAllRecords(User.class);
-        userListField.getItems().addAll(userList);
-    }
 
     //Sioje vietoje initialize mums reikia, kad nustatytume tam tikras reiksmes, kai dar nereikia duomenu bazes
     @Override
@@ -241,6 +275,22 @@ public class Main implements Initializable {
             userTableParameters.setPassword(u.getPassword());
             //likusius pabaigt
             userTable.getItems().add(userTableParameters);
+        }
+    }
+
+    public void chatWithOwner() {
+    }
+
+    public void reserveBook() {
+    }
+
+    public void loadData() {
+        //Kai spaudziam ant tab, tik tam tab pildom duomenis
+        if (userManagementTab.isSelected()) {
+            fillUserTable();
+        } else if (bookExchangeTab.isSelected()) {
+            availableBookList.getItems().clear();
+            availableBookList.getItems().addAll(hibernate.getAvailablePublications(currentUser));
         }
     }
 }

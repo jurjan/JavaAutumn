@@ -20,14 +20,15 @@ import java.util.List;
 public class Client extends User implements Comparable<Client> {
 
     private String address;
-    //birthDate prideta demonstracijai kaip dirbt su LocalDate
     private LocalDate birthDate;
     @OneToMany(mappedBy = "client", cascade = CascadeType.ALL)
     private List<Comment> commentList;
-    @Transient
+    @OneToMany(mappedBy = "owner", cascade = CascadeType.ALL)
     private List<Publication> ownedPublications;
-    @Transient
+    @OneToMany(mappedBy = "client", cascade = CascadeType.ALL)
     private List<Publication> borrowedPublications;
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
+    private List<PeriodicRecord> periodicRecords;
 
     public Client(String login, String password, String name, String surname, String address) {
         super(login, password, name, surname);
