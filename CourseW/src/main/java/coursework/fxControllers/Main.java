@@ -111,6 +111,8 @@ public class Main implements Initializable {
     public TableColumn<BookTableParameters, String> colRequestDate;
     @FXML
     public TableColumn<BookTableParameters, Integer> collBookId;
+    @FXML
+    public TableColumn colHistory; //Panasiai kaip dummyCol
     //</editor-fold>
 
     EntityManagerFactory entityManagerFactory;
@@ -281,6 +283,34 @@ public class Main implements Initializable {
         };
 
         colBookStatus.setCellFactory(callbackBookStatus);
+
+        //Cia dabar bus knopke
+        Callback<TableColumn<BookTableParameters, Void>, TableCell<BookTableParameters, Void>> historyButton = param -> new TableCell<>() {
+            private final Button viewHistoryBtn = new Button("View history");
+
+            {
+                viewHistoryBtn.setOnAction(event -> {
+                    BookTableParameters row = getTableView().getItems().get(getIndex());
+                    try {
+                        loadHistory(row.getId(), currentUser);
+                    } catch (IOException e) {
+                        throw new RuntimeException(e);
+                    }
+                });
+            }
+            @Override
+            protected void updateItem(Void item, boolean empty) {
+                super.updateItem(item, empty);
+                if (empty) {
+                    setGraphic(null);
+                } else {
+                    setGraphic(viewHistoryBtn);
+                }
+            }
+        };
+
+        colHistory.setCellFactory(historyButton);
+
         //</editor-fold>
 
 
@@ -347,6 +377,49 @@ public class Main implements Initializable {
         }
     }
 
+    public void loadData() {
+        //Kai spaudziam ant tab, tik tam tab pildom duomenis
+        if (userManagementTab.isSelected()) {
+            fillUserTable();
+        } else if (bookExchangeTab.isSelected()) {
+            availableBookList.getItems().clear();
+            availableBookList.getItems().addAll(hibernate.getAvailablePublications(currentUser));
+        } else if (clientBookManagementTab.isSelected()) {
+            fillBookList();
+        }
+    }
+
+
+
+    public void loadReviewWindow() throws IOException {
+        FXMLLoader fxmlLoader = new FXMLLoader(StartGUI.class.getResource("userReview.fxml"));
+        Parent parent = fxmlLoader.load();
+        UserReview userReview = fxmlLoader.getController();
+        userReview.setData(entityManagerFactory, currentUser, availableBookList.getSelectionModel().getSelectedItem().getOwner());
+        Stage stage = new Stage();
+        Scene scene = new Scene(parent);
+        stage.setTitle("Book Exchange Test");
+        stage.setScene(scene);
+        stage.initModality(Modality.APPLICATION_MODAL);
+        stage.showAndWait();
+    }
+
+
+
+    //<editor-fold desc="Book Exchange Tab Management">
+    public void loadPublicationInfo() {
+        Publication publication = availableBookList.getSelectionModel().getSelectedItem();
+        Publication publicationFromDb = hibernate.getEntityById(Publication.class, publication.getId());
+
+        if (publicationFromDb instanceof Book book)
+            aboutBook.setText(
+                    "Title :" + book.getTitle() + "\n" +
+                            "Year:" + book.getPublicationYear());
+
+        ownerInfo.setText(publicationFromDb.getOwner().getName());
+        ownerBio.setText(publicationFromDb.getOwner().getClientBio());
+    }
+
     public void chatWithOwner() {
     }
 
@@ -362,44 +435,7 @@ public class Main implements Initializable {
         hibernate.create(periodicRecord);
 
     }
-
-    public void loadData() {
-        //Kai spaudziam ant tab, tik tam tab pildom duomenis
-        if (userManagementTab.isSelected()) {
-            fillUserTable();
-        } else if (bookExchangeTab.isSelected()) {
-            availableBookList.getItems().clear();
-            availableBookList.getItems().addAll(hibernate.getAvailablePublications(currentUser));
-        } else if (clientBookManagementTab.isSelected()) {
-            fillBookList();
-        }
-    }
-
-    public void loadPublicationInfo() {
-        Publication publication = availableBookList.getSelectionModel().getSelectedItem();
-        Publication publicationFromDb = hibernate.getEntityById(Publication.class, publication.getId());
-
-        if (publicationFromDb instanceof Book book)
-            aboutBook.setText(
-                    "Title :" + book.getTitle() + "\n" +
-                            "Year:" + book.getPublicationYear());
-
-        ownerInfo.setText(publicationFromDb.getOwner().getName());
-        ownerBio.setText(publicationFromDb.getOwner().getClientBio());
-    }
-
-    public void loadReviewWindow() throws IOException {
-        FXMLLoader fxmlLoader = new FXMLLoader(StartGUI.class.getResource("userReview.fxml"));
-        Parent parent = fxmlLoader.load();
-        UserReview userReview = fxmlLoader.getController();
-        userReview.setData(entityManagerFactory, currentUser, availableBookList.getSelectionModel().getSelectedItem().getOwner());
-        Stage stage = new Stage();
-        Scene scene = new Scene(parent);
-        stage.setTitle("Book Exchange Test");
-        stage.setScene(scene);
-        stage.initModality(Modality.APPLICATION_MODAL);
-        stage.showAndWait();
-    }
+    //</editor-fold>
 
 
     //<editor-fold desc="MyBooks Tab management">
@@ -423,6 +459,24 @@ public class Main implements Initializable {
         PeriodicRecord periodicRecord = new PeriodicRecord(publication.getClient(), publication, LocalDate.now(), publication.getPublicationStatus());
         hibernate.create(periodicRecord);
     }
+
+    //UZDUOTIS. Logika mano pasiskolintu knygu atvaizdavimui
+
+    //Logika istoriniu knygos duomenu perziurai
+
+    private void loadHistory(int id, User currentUser) throws IOException {
+        FXMLLoader fxmlLoader = new FXMLLoader(StartGUI.class.getResource("history.fxml"));
+        Parent parent = fxmlLoader.load();
+        History history = fxmlLoader.getController();
+        history.setData(entityManagerFactory, currentUser, id);
+        Stage stage = new Stage();
+        Scene scene = new Scene(parent);
+        stage.setTitle("Book Exchange Test");
+        stage.setScene(scene);
+        stage.initModality(Modality.APPLICATION_MODAL);
+        stage.showAndWait();
+    }
+
     //</editor-fold>
 
 }

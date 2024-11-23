@@ -1,9 +1,6 @@
 package coursework.hibenateControllers;
 
-import coursework.model.Client;
-import coursework.model.Comment;
-import coursework.model.Publication;
-import coursework.model.User;
+import coursework.model.*;
 import coursework.model.enums.PublicationStatus;
 import jakarta.persistence.EntityManagerFactory;
 import jakarta.persistence.Query;
@@ -102,4 +99,24 @@ public class CustomHibernate extends GenericHibernate {
         return publications;
     }
 
+    public List<PeriodicRecord> getPeriodicById(int id) {
+        List<PeriodicRecord> periodicRecords = new ArrayList<>();
+        try {
+            entityManager = entityManagerFactory.createEntityManager();
+            CriteriaBuilder cb = entityManager.getCriteriaBuilder();
+            CriteriaQuery<PeriodicRecord> query = cb.createQuery(PeriodicRecord.class);
+            Root<PeriodicRecord> root = query.from(PeriodicRecord.class);
+            Publication publication = entityManager.find(Publication.class, id);
+
+            query.select(root).where(cb.equal(root.get("publication"), publication));
+            query.orderBy(cb.desc(root.get("transactionDate")));
+
+            Query q = entityManager.createQuery(query);
+            periodicRecords = q.getResultList();
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return periodicRecords;
+    }
 }
