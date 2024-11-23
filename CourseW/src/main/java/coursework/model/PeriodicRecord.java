@@ -23,15 +23,13 @@ public class PeriodicRecord {
     @ManyToOne
     private Publication publication;
     private LocalDate transactionDate;
-    private LocalDate returnDate;
     private PublicationStatus status;
 
 
-    public PeriodicRecord(Client user, Publication publication, LocalDate transactionDate, LocalDate returnDate, PublicationStatus status) {
+    public PeriodicRecord(Client user, Publication publication, LocalDate transactionDate, PublicationStatus status) {
         this.user = user;
         this.publication = publication;
         this.transactionDate = transactionDate;
-        this.returnDate = returnDate;
         this.status = status;
     }
 }

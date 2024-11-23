@@ -1,5 +1,5 @@
 package coursework.model.enums;
 
 public enum PublicationStatus {
-    AVAILABLE, PENDING, RESERVED, SOLD
+    AVAILABLE, PENDING, RESERVED, SOLD, REQUESTED, UNAVAILABLE
 }

@@ -8,6 +8,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.io.Serializable;
+import java.time.LocalDate;
 import java.util.List;
 
 @Getter
@@ -29,6 +30,7 @@ public class Publication implements Serializable {
     protected List<PeriodicRecord> records;
     @Enumerated
     protected PublicationStatus publicationStatus;
+    protected LocalDate requestDate;
 
     public Publication(String title, String author) {
         this.title = title;

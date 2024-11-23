@@ -3,6 +3,7 @@ package coursework.fxControllers;
 import coursework.StartGUI;
 import coursework.hibenateControllers.CustomHibernate;
 import coursework.model.*;
+import coursework.model.enums.PublicationStatus;
 import jakarta.persistence.EntityManagerFactory;
 import javafx.event.ActionEvent;
 import javafx.event.Event;
@@ -21,6 +22,7 @@ import javafx.util.Callback;
 
 import java.io.IOException;
 import java.net.URL;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.ResourceBundle;
 
@@ -95,7 +97,22 @@ public class Main implements Initializable {
     public Button leaveReviewButton;
     @FXML
     public Tab bookExchangeTab;
+
+    //<editor-fold desc="My Books Tab">
+    @FXML
+    public TableView<BookTableParameters> myBookList;
+    @FXML
+    public TableColumn<BookTableParameters, String> colBookTitle;
+    @FXML
+    public TableColumn<BookTableParameters, String> colRequestUser;
+    @FXML
+    public TableColumn colBookStatus; //Panasiai kaip dummyCol
+    @FXML
+    public TableColumn<BookTableParameters, String> colRequestDate;
+    @FXML
+    public TableColumn<BookTableParameters, Integer> collBookId;
     //</editor-fold>
+
     EntityManagerFactory entityManagerFactory;
     private CustomHibernate hibernate;
     private User currentUser;
@@ -155,6 +172,7 @@ public class Main implements Initializable {
     //Sioje vietoje initialize mums reikia, kad nustatytume tam tikras reiksmes, kai dar nereikia duomenu bazes
     @Override
     public void initialize(URL location, ResourceBundle resources) {
+        //<editor-fold desc="User Table initialize">
         userTable.setEditable(true);
 
         //Atvaizdavimui
@@ -219,8 +237,55 @@ public class Main implements Initializable {
         };
 
         dummyCol.setCellFactory(callback);
+        //</editor-fold>
+        //<editor-fold desc="Client book management window">
+        availableBookList.setEditable(true);
+
+        collBookId.setCellValueFactory(new PropertyValueFactory<>("id"));
+        colBookTitle.setCellValueFactory(new PropertyValueFactory<>("publicationTitle"));
+        colRequestUser.setCellValueFactory(new PropertyValueFactory<>("publicationUser"));
+        Callback<TableColumn<BookTableParameters, Void>, TableCell<BookTableParameters, Void>> callbackBookStatus = param -> {
+            final TableCell<BookTableParameters, Void> cell = new TableCell<>() {
+
+                private final ChoiceBox<PublicationStatus> bookStatus = new ChoiceBox<>();
+
+                {
+                    bookStatus.getItems().addAll(PublicationStatus.values());
+                    bookStatus.setOnAction(event -> {
+                        BookTableParameters rowData = getTableRow().getItem();
+                        if (rowData != null) {
+                            rowData.setPublicationStatus(bookStatus.getValue());
+
+                            Publication publication = hibernate.getEntityById(Publication.class, rowData.getId());
+                            publication.setPublicationStatus(bookStatus.getValue());
+                            hibernate.update(publication);
+
+                            insertPublicationRecord(publication);
+                        }
+                    });
+                }
+
+                @Override
+                protected void updateItem(Void item, boolean empty) {
+                    super.updateItem(item, empty);
+                    if (empty) {
+                        setGraphic(null);
+                    } else {
+                        BookTableParameters rowData = getTableRow().getItem();
+                        bookStatus.setValue(rowData.getPublicationStatus());
+                        setGraphic(bookStatus);
+                    }
+                }
+            };
+            return cell;
+        };
+
+        colBookStatus.setCellFactory(callbackBookStatus);
+        //</editor-fold>
+
 
     }
+
 
     public void loadUserData() {
         User selectedUser = userListField.getSelectionModel().getSelectedItem();
@@ -286,6 +351,16 @@ public class Main implements Initializable {
     }
 
     public void reserveBook() {
+
+        Publication publication = availableBookList.getSelectionModel().getSelectedItem();
+        Publication publicationFromDb = hibernate.getEntityById(Publication.class, publication.getId());
+        publicationFromDb.setPublicationStatus(PublicationStatus.REQUESTED);
+        publicationFromDb.setClient((Client) currentUser);
+        hibernate.update(publicationFromDb);
+
+        PeriodicRecord periodicRecord = new PeriodicRecord((Client) currentUser, publicationFromDb, LocalDate.now(), PublicationStatus.REQUESTED);
+        hibernate.create(periodicRecord);
+
     }
 
     public void loadData() {
@@ -295,6 +370,8 @@ public class Main implements Initializable {
         } else if (bookExchangeTab.isSelected()) {
             availableBookList.getItems().clear();
             availableBookList.getItems().addAll(hibernate.getAvailablePublications(currentUser));
+        } else if (clientBookManagementTab.isSelected()) {
+            fillBookList();
         }
     }
 
@@ -323,4 +400,29 @@ public class Main implements Initializable {
         stage.initModality(Modality.APPLICATION_MODAL);
         stage.showAndWait();
     }
+
+
+    //<editor-fold desc="MyBooks Tab management">
+    private void fillBookList() {
+        myBookList.getItems().clear();
+        List<Publication> publications = hibernate.getOwnPublications(currentUser);
+        for (Publication p : publications) {
+            BookTableParameters bookTableParameters = new BookTableParameters();
+            bookTableParameters.setId(p.getId());
+            bookTableParameters.setPublicationTitle(p.getTitle());
+            if (p.getClient() != null) {
+                bookTableParameters.setPublicationUser(p.getClient().getName() + " " + p.getClient().getSurname());
+            }
+            bookTableParameters.setPublicationStatus(p.getPublicationStatus());
+
+            myBookList.getItems().add(bookTableParameters);
+        }
+    }
+
+    private void insertPublicationRecord(Publication publication) {
+        PeriodicRecord periodicRecord = new PeriodicRecord(publication.getClient(), publication, LocalDate.now(), publication.getPublicationStatus());
+        hibernate.create(periodicRecord);
+    }
+    //</editor-fold>
+
 }

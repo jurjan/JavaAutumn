@@ -80,4 +80,26 @@ public class CustomHibernate extends GenericHibernate {
             if (entityManager != null) entityManager.close();
         }
     }
+
+    public List<Publication> getOwnPublications(User user) {
+
+        List<Publication> publications = new ArrayList<>();
+        try {
+            entityManager = entityManagerFactory.createEntityManager();
+            CriteriaBuilder cb = entityManager.getCriteriaBuilder();
+            CriteriaQuery<Publication> query = cb.createQuery(Publication.class);
+            Root<Publication> root = query.from(Publication.class);
+
+            query.select(root).where(cb.equal(root.get("owner"), user));
+            query.orderBy(cb.desc(root.get("requestDate")));
+
+            Query q = entityManager.createQuery(query);
+            publications = q.getResultList();
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return publications;
+    }
+
 }
